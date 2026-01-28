@@ -1,6 +1,6 @@
-# Human Context Protocol Demo
-
 **[View Live Demo →](https://hcp-demo-mu.vercel.app)**
+
+# Human Context Protocol Demo
 
 A Next.js demonstration of how personal context and delegated authority should work in AI systems.
 
