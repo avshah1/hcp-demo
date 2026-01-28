@@ -1,14 +1,12 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Send, User, Sparkles, Brain, Database, CheckCircle, Activity, Shield, Lock, Unlock, AlertCircle } from "lucide-react"
+import { Send, User, Sparkles, Lock, Unlock, AlertCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface Message {
@@ -22,223 +20,133 @@ interface Message {
   }
 }
 
-interface PermissionRequest {
-  messageId: string
-  keys: string[]
-}
-
-interface HumanContext {
-  behavioral_patterns?: any
-  interaction_history?: {
-    topics_discussed?: Array<{ topic: string; frequency: number; sentiment: string }>
+// Simulated responses based on context access
+const simulatedResponses: Record<string, { content: string; contextAccess: Message['contextAccess'] }> = {
+  "washing": {
+    content: "Based on your preferences for quality-focused and sustainable products, I'd recommend looking at front-loading washing machines from brands like Miele or Bosch. They're more water-efficient and tend to last longer. Given your moderate budget sensitivity, the Bosch 500 series offers excellent value with a 15-year average lifespan.",
+    contextAccess: {
+      allowed: ["preferences.shopping", "behavioral_patterns"],
+      requested: [],
+      denied: []
+    }
+  },
+  "news": {
+    content: "I'd like to personalize your news feed, but I need permission to access your news preferences. This would help me show you content about technology, science, and economics from your preferred sources.",
+    contextAccess: {
+      allowed: [],
+      requested: ["preferences.news"],
+      denied: []
+    }
+  },
+  "recommend": {
+    content: "I can see you enjoy documentaries, sci-fi, and thrillers. Have you watched 'Severance' on Apple TV+? It's a psychological thriller with sci-fi elements that's been highly rated. Also, 'The Social Dilemma' documentary might interest you given your concern about privacy in tech.",
+    contextAccess: {
+      allowed: ["preferences.entertainment"],
+      requested: [],
+      denied: []
+    }
+  },
+  "default": {
+    content: "I'd be happy to help! To give you a more personalized response, could you tell me more about what you're looking for? I can access some of your preferences to tailor my recommendations.",
+    contextAccess: {
+      allowed: ["behavioral_patterns"],
+      requested: [],
+      denied: []
+    }
   }
-  preferences?: {
-    domains?: Record<string, any>
-  }
-  metadata?: {
-    update_count?: number
-  }
-}
-
-// Helper function to calculate context completeness
-function getContextCompleteness(context: HumanContext): number {
-  if (!context) return 0
-  
-  const sections = [
-    context.behavioral_patterns,
-    context.interaction_history,
-    context.preferences,
-    context.metadata
-  ]
-  
-  const filledSections = sections.filter(s => s && Object.keys(s).length > 0).length
-  return Math.round((filledSections / sections.length) * 100)
 }
 
 export function ChatComponent() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("What are the different types of washing machines available?")
   const [isLoading, setIsLoading] = useState(false)
-  const [humanContext, setHumanContext] = useState<HumanContext | null>(null)
-  const [contextCompleteness, setContextCompleteness] = useState(0)
-  const [showContextUpdate, setShowContextUpdate] = useState(false)
-  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
-  const [expandedContext, setExpandedContext] = useState(false)
-  const [approvedPermissions, setApprovedPermissions] = useState<string[]>([])
-  const [pendingPermissions, setPendingPermissions] = useState<PermissionRequest[]>([])
+  const [pendingPermissions, setPendingPermissions] = useState<{ messageId: string; keys: string[] }[]>([])
 
-  // Fetch initial context on mount
-  useEffect(() => {
-    const fetchContext = () => {
-      fetch("/api/hcp?endpoint=context")
-        .then(res => res.json())
-        .then(data => {
-          setHumanContext(data)
-          setContextCompleteness(getContextCompleteness(data))
-        })
-        .catch(err => console.error("Failed to fetch human context:", err))
+  const getSimulatedResponse = (userMessage: string) => {
+    const lower = userMessage.toLowerCase()
+    if (lower.includes("washing") || lower.includes("appliance")) {
+      return simulatedResponses.washing
     }
-    
-    fetchContext()
-  }, [])
+    if (lower.includes("news") || lower.includes("article")) {
+      return simulatedResponses.news
+    }
+    if (lower.includes("watch") || lower.includes("movie") || lower.includes("show") || lower.includes("recommend")) {
+      return simulatedResponses.recommend
+    }
+    return simulatedResponses.default
+  }
 
-  // Update context when messages change (after user sends a message)
-  useEffect(() => {
-    if (messages.length === 0) return
-    
-    // Fetch updated context after a short delay to allow backend processing
-    const timeoutId = setTimeout(() => {
-      fetch("/api/hcp?endpoint=context")
-        .then(res => res.json())
-        .then(data => {
-          // Only update if the context has actually changed
-          const prevUpdateCount = humanContext?.metadata?.update_count || 0
-          const newUpdateCount = data?.metadata?.update_count || 0
-          
-          if (newUpdateCount > prevUpdateCount) {
-            setHumanContext(data)
-            setContextCompleteness(getContextCompleteness(data))
-            setShowContextUpdate(true)
-            setLastUpdateTime(new Date())
-            
-            // Hide the update indicator after 3 seconds
-            setTimeout(() => setShowContextUpdate(false), 3000)
-          }
-        })
-        .catch(err => console.error("Failed to fetch human context:", err))
-    }, 2000) // Wait 2 seconds after message to check for updates
-    
-    return () => clearTimeout(timeoutId)
-  }, [messages.length, humanContext?.metadata?.update_count]) // Only re-run when number of messages changes
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim() || isLoading) return
 
-  const handleApprovePermission = (messageId: string, keys: string[]) => {
-    setApprovedPermissions(prev => [...prev, ...keys])
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: input,
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    setInput("")
+    setIsLoading(true)
+
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    const response = getSimulatedResponse(userMessage.content)
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: "assistant",
+      content: response.content,
+      contextAccess: response.contextAccess,
+    }
+
+    setMessages((prev) => [...prev, assistantMessage])
+
+    // If there are requested permissions, add to pending
+    if (response.contextAccess?.requested && response.contextAccess.requested.length > 0) {
+      setPendingPermissions(prev => [...prev, {
+        messageId: assistantMessage.id,
+        keys: response.contextAccess!.requested
+      }])
+    }
+
+    setIsLoading(false)
+  }
+
+  const handleApprovePermission = (messageId: string) => {
     setPendingPermissions(prev => prev.filter(p => p.messageId !== messageId))
-    
-    // Re-send the last user message with approved permissions
-    const lastUserMessage = messages.filter(m => m.role === 'user').pop()
-    if (lastUserMessage) {
-      // Create a new assistant message with approved context
-      handleSubmit(null, true)
+
+    // Add a follow-up message showing the permission was granted
+    const followUpMessage: Message = {
+      id: Date.now().toString(),
+      role: "assistant",
+      content: "Thanks for granting access! Now I can see you prefer balanced perspectives from varied sources on topics like technology, science, and economics. I'll curate a news digest for you focusing on these areas from reputable primary sources.",
+      contextAccess: {
+        allowed: ["preferences.news"],
+        requested: [],
+        denied: []
+      }
     }
+    setMessages(prev => [...prev, followUpMessage])
   }
 
   const handleDenyPermission = (messageId: string) => {
     setPendingPermissions(prev => prev.filter(p => p.messageId !== messageId))
-  }
 
-  const handleSubmit = async (e: React.FormEvent | null, withApprovedPermissions = false) => {
-    if (e) e.preventDefault()
-    if (!withApprovedPermissions && (!input.trim() || isLoading)) return
-
-    const userMessage: Message = withApprovedPermissions 
-      ? messages.filter(m => m.role === 'user').pop()!
-      : {
-          id: Date.now().toString(),
-          role: "user",
-          content: input,
-        }
-
-    if (!withApprovedPermissions) {
-      setMessages((prev) => [...prev, userMessage])
-      setInput("")
-    }
-    setIsLoading(true)
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: messages.filter(m => !withApprovedPermissions || m !== userMessage).concat(userMessage).map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          approvedPermissions,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to get response")
-      }
-
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error("No response body")
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "",
-        contextAccess: undefined,
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-
-      const decoder = new TextDecoder()
-      let done = false
-      let buffer = ""
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read()
-        done = readerDone
-
-        if (value) {
-          buffer += decoder.decode(value, { stream: true })
-          
-          // Check for metadata
-          const metadataMatch = buffer.match(/\[METADATA\](.*?)\[\/METADATA\]/)
-          if (metadataMatch) {
-            try {
-              const metadata = JSON.parse(metadataMatch[1])
-              if (metadata.type === 'context_access') {
-                // Update the assistant message with context access info
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessage.id 
-                      ? { ...msg, contextAccess: metadata.data }
-                      : msg
-                  )
-                )
-                
-                // If there are requested permissions, add to pending
-                if (metadata.data.requested && metadata.data.requested.length > 0) {
-                  setPendingPermissions(prev => [...prev, {
-                    messageId: assistantMessage.id,
-                    keys: metadata.data.requested
-                  }])
-                }
-              }
-            } catch (err) {
-              console.error("Failed to parse metadata:", err)
+    // Update the message to show denied access
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId
+        ? {
+            ...msg,
+            contextAccess: {
+              ...msg.contextAccess!,
+              denied: msg.contextAccess?.requested || [],
+              requested: []
             }
-            // Remove metadata from buffer
-            buffer = buffer.replace(metadataMatch[0], '')
           }
-          
-          // Update content with the remaining buffer
-          const cleanContent = buffer
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantMessage.id ? { ...msg, content: cleanContent } : msg,
-            ),
-          )
-        }
-      }
-    } catch (error) {
-      console.error("Chat error:", error)
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: "Sorry, I encountered an error. Please try again.",
-        },
-      ])
-    } finally {
-      setIsLoading(false)
-    }
+        : msg
+    ))
   }
 
   return (
@@ -247,7 +155,7 @@ export function ChatComponent() {
       <ScrollArea className="flex-1 mb-3 sm:mb-4 min-h-0">
         <div className="space-y-3 sm:space-y-4 pr-2 sm:pr-4">
           {messages.length === 0 ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -278,11 +186,11 @@ export function ChatComponent() {
                   className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div className={`flex gap-2 sm:gap-3 max-w-[90%] sm:max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                    <motion.div 
+                    <motion.div
                       whileHover={{ scale: 1.05 }}
                       className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        message.role === "user" 
-                          ? "bg-primary/10" 
+                        message.role === "user"
+                          ? "bg-primary/10"
                           : "bg-muted"
                       }`}>
                       {message.role === "user" ? (
@@ -293,12 +201,12 @@ export function ChatComponent() {
                     </motion.div>
                     <Card
                       className={`px-3 py-2 sm:px-4 sm:py-3 border-0 shadow-sm ${
-                        message.role === "user" 
-                          ? "bg-primary text-primary-foreground" 
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-card/50 backdrop-blur-sm"
                       }`}>
                       <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                      
+
                       {/* Context Access Display */}
                       {message.role === "assistant" && message.contextAccess && (
                         <div className="mt-3 space-y-2">
@@ -318,7 +226,7 @@ export function ChatComponent() {
                               </div>
                             </div>
                           )}
-                          
+
                           {/* Permission Requests */}
                           {pendingPermissions.find(p => p.messageId === message.id) && (
                             <motion.div
@@ -341,10 +249,7 @@ export function ChatComponent() {
                                 </div>
                                 <div className="flex gap-2">
                                   <Button
-                                    onClick={() => handleApprovePermission(
-                                      message.id, 
-                                      pendingPermissions.find(p => p.messageId === message.id)?.keys || []
-                                    )}
+                                    onClick={() => handleApprovePermission(message.id)}
                                     size="sm"
                                     className="h-7 px-3 text-xs bg-green-600 hover:bg-green-700"
                                   >
@@ -362,7 +267,23 @@ export function ChatComponent() {
                               </div>
                             </motion.div>
                           )}
-                          
+
+                          {/* Denied Context */}
+                          {message.contextAccess.denied.length > 0 && (
+                            <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/5 border border-red-500/20">
+                              <Lock className="h-3 w-3 text-red-600 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="text-xs font-medium text-red-700 mb-1">Access Denied</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {message.contextAccess.denied.map((key) => (
+                                    <Badge key={key} variant="outline" className="text-xs bg-red-500/10 border-red-500/30">
+                                      {key}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </Card>
@@ -402,8 +323,8 @@ export function ChatComponent() {
       </ScrollArea>
 
       {/* Input */}
-      <motion.form 
-        onSubmit={handleSubmit} 
+      <motion.form
+        onSubmit={handleSubmit}
         className="flex gap-2 p-2 sm:p-3 bg-muted/30 rounded-xl backdrop-blur-sm"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -412,16 +333,17 @@ export function ChatComponent() {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about washing machines or share your preferences..."
+          placeholder="Ask something..."
           disabled={isLoading}
-          className="flex-1 border-0 bg-background/50 focus:bg-background transition-colors text-sm sm:text-base h-[44px]"
+          className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-sm placeholder:text-muted-foreground/50"
         />
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
+          size="icon"
           disabled={isLoading || !input.trim()}
-          className="rounded-lg h-[44px] w-[44px] flex items-center justify-center flex-shrink-0"
+          className="h-9 w-9 rounded-lg bg-primary hover:bg-primary/90 transition-colors"
         >
-          <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+          <Send className="w-4 h-4" />
         </Button>
       </motion.form>
     </div>
