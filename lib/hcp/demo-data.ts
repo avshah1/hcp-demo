@@ -39,34 +39,34 @@ export const DEMO_CONTEXT = {
 import type { Permission } from './types'
 
 export const DEMO_PERMISSIONS: Record<string, Permission> = {
-  // Personal information - allow for demo
-  "personal": { read: "Allow", write: "Ask" },
+  // Personal information - mixed sensitivity
+  "personal": { read: "Ask", write: "Ask" },
   "personal.name": { read: "Allow", write: "Never" },
   "personal.occupation": { read: "Allow", write: "Ask" },
-  "personal.location": { read: "Allow", write: "Ask" },
+  "personal.location": { read: "Ask", write: "Ask" },
 
-  // Shopping preferences - allow for demo
+  // Shopping preferences - generally shareable for commerce
   "shopping_preferences": { read: "Allow", write: "Ask" },
   "shopping_preferences.budget": { read: "Allow", write: "Ask" },
   "shopping_preferences.brand_preferences": { read: "Allow", write: "Ask" },
   "shopping_preferences.delivery_requirements": { read: "Allow", write: "Ask" },
 
-  // Financial information - allow for demo
-  "financial": { read: "Allow", write: "Ask" },
-  "financial.current_mortgage": { read: "Allow", write: "Never" },
-  "financial.property_details": { read: "Allow", write: "Never" },
-  "financial.financial_goals": { read: "Allow", write: "Never" },
-  "financial.banking_relationships": { read: "Allow", write: "Never" },
-  "financial.payment_history": { read: "Allow", write: "Never" },
+  // Financial information - highly sensitive
+  "financial": { read: "Never", write: "Never" },
+  "financial.current_mortgage": { read: "Ask", write: "Never" },
+  "financial.property_details": { read: "Ask", write: "Never" },
+  "financial.financial_goals": { read: "Ask", write: "Never" },
+  "financial.banking_relationships": { read: "Never", write: "Never" },
+  "financial.payment_history": { read: "Ask", write: "Never" },
 
-  // Health information - allow for demo
-  "health": { read: "Allow", write: "Ask" },
-  "health.current_conditions": { read: "Allow", write: "Never" },
-  "health.medical_history": { read: "Allow", write: "Never" },
-  "health.insurance_coverage": { read: "Allow", write: "Never" },
+  // Health information - extremely sensitive
+  "health": { read: "Never", write: "Never" },
+  "health.current_conditions": { read: "Never", write: "Never" },
+  "health.medical_history": { read: "Never", write: "Never" },
+  "health.insurance_coverage": { read: "Never", write: "Never" },
 
-  // Housing situation - allow for demo
-  "housing_situation": { read: "Allow", write: "Ask" },
+  // Housing situation - selective sharing
+  "housing_situation": { read: "Ask", write: "Ask" },
   "housing_situation.laundry_constraints": { read: "Allow", write: "Ask" },
   "housing_situation.building_requirements": { read: "Allow", write: "Ask" },
   "housing_situation.previous_appliances": { read: "Allow", write: "Ask" }

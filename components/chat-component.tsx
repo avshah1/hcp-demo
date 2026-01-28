@@ -363,22 +363,6 @@ export function ChatComponent() {
                             </motion.div>
                           )}
                           
-                          {/* Denied Context */}
-                          {message.contextAccess.denied.length > 0 && (
-                            <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/5 border border-red-500/20">
-                              <Lock className="h-3 w-3 text-red-600 mt-0.5" />
-                              <div className="flex-1">
-                                <p className="text-xs font-medium text-red-700 mb-1">Access Denied</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {message.contextAccess.denied.map((key) => (
-                                    <Badge key={key} variant="outline" className="text-xs bg-red-500/10 border-red-500/30">
-                                      {key}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       )}
                     </Card>
