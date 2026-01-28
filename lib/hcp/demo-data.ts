@@ -7,7 +7,7 @@
 export const DEMO_CONTEXT = {
   personal: {
     name: "Bob North",
-    occupation: "Research Fellow at Stanford University",
+    occupation: "Research Scientist",
     location: "San Francisco, lives in a one-bedroom apartment with a 1920 style design.",
     // income: "Annual salary of $300,000 plus equity, with about $100,000 in savings and excellent credit score of 785 after years of responsible financial management.",
     // lifestyle: "Works from home three days a week, enjoys cooking but has a small kitchen, cycles to work when going to the office, and values products that last rather than trendy items."

@@ -37,4 +37,3 @@ This demo serves policymakers, technologists, and AI researchers who need to und
 
 ---
 
-*A collaboration between Stanford DEL and Consumer Reports to advance digital rights in the age of AI.*

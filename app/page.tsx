@@ -765,9 +765,7 @@ export default function HomePage() {
           className="text-center pt-16 sm:pt-20 md:pt-24 pb-12 sm:pb-16 md:pb-20"
         >
           <p className="text-xs text-muted-foreground/40 font-mono tracking-wide">
-            Made with 💙 by Tobin in collaboration with{" "}
-            <span className="text-muted-foreground/60">Stanford DEL</span> and{" "}
-            <span className="text-muted-foreground/60">Consumer Reports</span>
+            Human Context Protocol Demo
           </p>
         </motion.div>
         </div>

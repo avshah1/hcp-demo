@@ -1,5 +1,7 @@
 # Human Context Protocol Demo
 
+**[View Live Demo →](https://v0-preference-generation-app.vercel.app)**
+
 A Next.js demonstration of how personal context and delegated authority should work in AI systems.
 
 ## Overview
@@ -40,6 +42,3 @@ pnpm run dev
 
 This demo communicates why user-controlled context portability is essential for a healthy AI ecosystem. Built for policymakers, technologists, and researchers exploring the future of AI safety and digital sovereignty.
 
----
-
-*Stanford DEL × Consumer Reports collaboration*

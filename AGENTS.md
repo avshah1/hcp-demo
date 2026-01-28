@@ -35,6 +35,3 @@ Built as a Next.js application with:
 
 This demo serves policymakers, technologists, and AI researchers who need to understand why **user-controlled context portability** is essential for a healthy AI ecosystem.
 
----
-
-*A collaboration between Stanford DEL and Consumer Reports to advance digital rights in the age of AI.*
