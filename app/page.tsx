@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { ChatComponent } from "@/components/chat-component"
 import { PreferenceDatabaseUI } from "@/components/preference-database-ui"
@@ -46,7 +46,16 @@ function TypewriterText({ text, delay = 0, speed = 80 }: { text: string; delay?:
 export default function HomePage() {
   // Initialize demo data automatically
   const { initialized: demoInitialized } = useDemoInitialization()
-  
+
+  // Ref for auto-scroll to bottom
+  const pageEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      pageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }, 600) // Wait for animations to complete
+  }
+
   // Flow state management
   const [currentStep, setCurrentStep] = useState<'initial' | 'preferences' | 'authority' | 'applications'>('initial')
   const [showPreferences, setShowPreferences] = useState(false)
@@ -65,7 +74,7 @@ export default function HomePage() {
 
   const handleModalClose = (modal: 'preferences' | 'authority' | 'application') => {
     setCurrentModal(null)
-    
+
     setTimeout(() => {
       if (modal === 'preferences') {
         setCurrentStep('preferences')
@@ -77,6 +86,8 @@ export default function HomePage() {
         setCurrentStep('applications')
         // Don't auto-expand applications - let user click to open
       }
+      // Auto-scroll to bottom after section reveals
+      scrollToBottom()
     }, 300)
   }
   
@@ -691,7 +702,10 @@ export default function HomePage() {
               )}
           </motion.div>
         </LayoutGroup>
-        
+
+        {/* Scroll anchor for auto-scroll */}
+        <div ref={pageEndRef} />
+
         {/* Manifesto */}
         <motion.div
           initial={{ opacity: 0 }}
