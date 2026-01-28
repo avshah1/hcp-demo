@@ -704,7 +704,7 @@ export default function HomePage() {
         </LayoutGroup>
 
         {/* Scroll anchor for auto-scroll */}
-        <div ref={pageEndRef} />
+        <div ref={pageEndRef} className="h-8" />
 
         {/* Manifesto */}
         <motion.div
