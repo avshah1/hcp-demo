@@ -78,15 +78,14 @@ export default function HomePage() {
     setTimeout(() => {
       if (modal === 'preferences') {
         setCurrentStep('preferences')
-        // Don't auto-expand preferences - let user click to open
+        setShowPreferences(true)
       } else if (modal === 'authority') {
         setCurrentStep('authority')
-        // Don't auto-expand authority - let user click to open
+        setShowGrantAuthority(true)
       } else if (modal === 'application') {
         setCurrentStep('applications')
-        // Don't auto-expand applications - let user click to open
+        setShowChat(true)
       }
-      // Auto-scroll to bottom after section reveals
       scrollToBottom()
     }, 300)
   }
